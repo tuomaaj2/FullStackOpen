@@ -3,7 +3,6 @@ import React, { useState } from 'react'
 const Numbers = ({ numbers }) => {
   return(
   <div>
-    {console.log(numbers)}
     {numbers.map(number => <p key={number.name}>{number.name}</p>)}
   </div>
   )
@@ -13,20 +12,23 @@ const App = () => {
   const [ persons, setPersons] = useState([
     { name: 'Arto Hellas' }
   ]) 
-  const [ newName, setNewName ] = useState('TEST')
+  const [ newName, setNewName ] = useState('Arto Hellas')
 
   const addNumber = (event) => {
     event.preventDefault()
-    console.log('button clicked', event.target.value)
     const newPerson = {
       name: newName
     }
-    setPersons(persons.concat(newPerson))
+    nameExists() ? alert(`${newName} is already added to phonebook`) : setPersons(persons.concat(newPerson))
+    setNewName('')
   }
 
   const handleNoteChange = (event) => {
-    console.log(event.target.value)
     setNewName(event.target.value)
+  }
+
+  const nameExists = () => {
+    return(persons.some(e => e.name === newName ))
   }
 
   return (
