@@ -1,20 +1,32 @@
 import React, { useState, useEffect } from 'react'
 import personService from './services/persons'
+import './index.css'
 
 
-const Numbers = ({ numbers, setPersons }) => {
+const Numbers = ({ numbers, setPersons, setErrorMessage }) => {
   const deleteNumberOf = (id, name) => {
     console.log('Deleting ' + id)
     if(window.confirm(`Delete ${name} ?`))
     {
       personService
         .deleteNumb(id)
-          .then(() => {
-            personService
-              .getAll()
-                .then(initialPersons => {
-                  setPersons(initialPersons)
-                })
+          .then(response => {
+            setErrorMessage(`Deleted ${name} successfully`)
+          })
+          .catch(error => {
+            setErrorMessage(
+              `${name} was already removed from server`
+            )
+          })
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
+          
+      
+      personService
+        .getAll()
+          .then(initialPersons => {
+            setPersons(initialPersons)
           })
     }
   }
@@ -55,7 +67,7 @@ const Filter = ({filter, setNewFilter}) => {
   )
 }
 
-const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNewPhone}) => {
+const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNewPhone, setErrorMessage}) => {
   const addNumber = (event) => {
     event.preventDefault()
     const newPerson = {
@@ -86,7 +98,11 @@ const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNew
       .create(newPerson)
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson))
+          setErrorMessage(`Added ${newPerson.name} successfully`)
         })
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)
   }
 
   const updateName = () => {
@@ -101,7 +117,11 @@ const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNew
             setPersons(
               persons.map(person => 
                 person.id !== id ? person : response))
+            setErrorMessage(`Updated ${changedNumb.name} successfully`)
           })
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)    
     }
   }
 
@@ -123,11 +143,36 @@ const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNew
 }
 
 
+const Notification = ({ message }) => {
+  console.log(message)
+  if (message === null) {
+    return null
+  }
+  console.log(message.includes("successfully"))
+  if(message.includes("successfully"))
+  { 
+    return (
+      <div className="success">
+        {message}
+      </div>
+    )
+  }
+  
+  return (
+    <div className="error">
+      {message}
+    </div>
+  )
+
+}
+
+
 const App = () => {
   const [ persons, setPersons] = useState([])
   const [ newName, setNewName ] = useState('')
   const [ newPhone, setNewPhone ] = useState('')
   const [ filter, setNewFilter] = useState('')
+  const [errorMessage, setErrorMessage] = useState(null)
 
   useEffect(() => {
     personService
@@ -143,11 +188,12 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={errorMessage} />
       <Filter filter={filter} setNewFilter={setNewFilter} />
       <h3>add a new</h3>
-      <PersonForm persons={persons} setPersons={setPersons} newName={newName} setNewName={setNewName} newPhone={newPhone} setNewPhone={setNewPhone} />
+      <PersonForm persons={persons} setPersons={setPersons} newName={newName} setNewName={setNewName} newPhone={newPhone} setNewPhone={setNewPhone} setErrorMessage={setErrorMessage} />
       <h3>Numbers</h3>
-      <Numbers numbers={numbers} setPersons={setPersons} />
+      <Numbers numbers={numbers} setPersons={setPersons} setErrorMessage={setErrorMessage} />
     </div>
   )
 
