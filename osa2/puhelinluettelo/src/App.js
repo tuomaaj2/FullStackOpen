@@ -1,18 +1,47 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import personService from './services/persons'
 
 
-const Numbers = ({ numbers }) => {
+const Numbers = ({ numbers, setPersons }) => {
+  const deleteNumberOf = (id, name) => {
+    console.log('Deleting ' + id)
+    if(window.confirm(`Delete ${name} ?`))
+    {
+      personService
+        .deleteNumb(id)
+          .then(() => {
+            personService
+              .getAll()
+                .then(initialPersons => {
+                  setPersons(initialPersons)
+                })
+          })
+    }
+  }
+
+  return(
+  <div>
+    {numbers.map(numb => 
+      <Number 
+        key={numb.name} 
+        number={numb}
+        deleteNumber={() => deleteNumberOf(numb.id, numb.name)}
+      />
+    )}
+  </div>
+  )
+}
+
+const Number = ({ number, deleteNumber }) => {
   return(
   <>
-    {numbers.map(numb => 
-      <p key={numb.name}>
-        {numb.name} {numb.number}
-      </p>
-    )}
+    <p key={number.name}>
+      {number.name} {number.number} <button onClick={deleteNumber}>delete</button>
+    </p>
   </>
   )
 }
+
 
 const Filter = ({filter, setNewFilter}) => {
   const handleFilterChange = (event) => {
@@ -53,11 +82,10 @@ const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNew
   }
 
   const sendName = (persons, setPersons, newPerson) => {
-    const baseUrl = 'http://localhost:3001/persons'
-    axios
-      .post(baseUrl, newPerson)
-        .then(response => {
-          setPersons(persons.concat(newPerson))
+    personService
+      .create(newPerson)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
         })
   }
 
@@ -78,6 +106,7 @@ const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNew
   )
 }
 
+
 const App = () => {
   const [ persons, setPersons] = useState([])
   const [ newName, setNewName ] = useState('')
@@ -85,13 +114,11 @@ const App = () => {
   const [ filter, setNewFilter] = useState('')
 
   useEffect(() => {
-    console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        console.log('promise fulfilled')
-        setPersons(response.data)
-      })
+    personService
+      .getAll()
+        .then(initialPersons => {
+          setPersons(initialPersons)
+        })
   }, [])
   console.log('render', persons.length, 'persons')
  
@@ -104,7 +131,7 @@ const App = () => {
       <h3>add a new</h3>
       <PersonForm persons={persons} setPersons={setPersons} newName={newName} setNewName={setNewName} newPhone={newPhone} setNewPhone={setNewPhone} />
       <h3>Numbers</h3>
-      <Numbers numbers={numbers}/>
+      <Numbers numbers={numbers} setPersons={setPersons} />
     </div>
   )
 
