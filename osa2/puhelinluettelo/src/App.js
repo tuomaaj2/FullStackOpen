@@ -33,7 +33,9 @@ const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNew
       name: newName,
       number: newPhone
     }
-    nameExists() ? alert(`${newName} is already added to phonebook`) : setPersons(persons.concat(newPerson))
+    nameExists() 
+      ? alert(`${newName} is already added to phonebook`) 
+      : sendName(persons, setPersons, newPerson)
     setNewName('')
     setNewPhone('')
   }
@@ -48,6 +50,15 @@ const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNew
 
   const nameExists = () => {
     return(persons.some(e => e.name === newName ))
+  }
+
+  const sendName = (persons, setPersons, newPerson) => {
+    const baseUrl = 'http://localhost:3001/persons'
+    axios
+      .post(baseUrl, newPerson)
+        .then(response => {
+          setPersons(persons.concat(newPerson))
+        })
   }
 
   return(
