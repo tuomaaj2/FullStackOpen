@@ -17,4 +17,10 @@ const deleteNumb = (id) => {
     return request.then(response => response.data)
 }
 
-export default { getAll, create, deleteNumb }
+const modify = (number) => {
+    const url = `${baseUrl}/${number.id}`
+    const request = axios.put(url, number)
+    return request.then(response => response.data)
+}
+
+export default { getAll, create, deleteNumb, modify }

@@ -23,7 +23,7 @@ const Numbers = ({ numbers, setPersons }) => {
   <div>
     {numbers.map(numb => 
       <Number 
-        key={numb.name} 
+        key={numb.id} 
         number={numb}
         deleteNumber={() => deleteNumberOf(numb.id, numb.name)}
       />
@@ -63,7 +63,7 @@ const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNew
       number: newPhone
     }
     nameExists() 
-      ? alert(`${newName} is already added to phonebook`) 
+      ? updateName()
       : sendName(persons, setPersons, newPerson)
     setNewName('')
     setNewPhone('')
@@ -87,6 +87,22 @@ const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNew
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson))
         })
+  }
+
+  const updateName = () => {
+    if(window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`))
+    {
+      const newPerson = persons.find(n => n.name === newName)
+      const changedNumb = { ...newPerson, number: newPhone }
+      const id = newPerson.id
+      personService
+        .modify(changedNumb)
+          .then(response => {
+            setPersons(
+              persons.map(person => 
+                person.id !== id ? person : response))
+          })
+    }
   }
 
   return(
