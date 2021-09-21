@@ -3,7 +3,7 @@ import personService from './services/persons'
 import './index.css'
 
 
-const Numbers = ({ numbers, setPersons, setErrorMessage }) => {
+const Numbers = ({ numbers, persons, setPersons, setErrorMessage }) => {
   const deleteNumberOf = (id, name) => {
     console.log('Deleting ' + id)
     if(window.confirm(`Delete ${name} ?`))
@@ -11,9 +11,11 @@ const Numbers = ({ numbers, setPersons, setErrorMessage }) => {
       personService
         .deleteNumb(id)
           .then(response => {
+            setPersons(persons.filter(p => p.id !== id))
             setErrorMessage(`Deleted ${name} successfully`)
           })
           .catch(error => {
+            setPersons(persons.filter(p => p.id !== id))
             setErrorMessage(
               `${name} was already removed from server`
             )
@@ -193,7 +195,7 @@ const App = () => {
       <h3>add a new</h3>
       <PersonForm persons={persons} setPersons={setPersons} newName={newName} setNewName={setNewName} newPhone={newPhone} setNewPhone={setNewPhone} setErrorMessage={setErrorMessage} />
       <h3>Numbers</h3>
-      <Numbers numbers={numbers} setPersons={setPersons} setErrorMessage={setErrorMessage} />
+      <Numbers numbers={numbers} persons={persons} setPersons={setPersons} setErrorMessage={setErrorMessage} />
     </div>
   )
 
