@@ -3,7 +3,7 @@ import personService from './services/persons'
 import './index.css'
 
 
-const Numbers = ({ numbers, persons, setPersons, setErrorMessage }) => {
+const Numbers = ({ numbers, persons, setPersons, setNotification }) => {
   const deleteNumberOf = (id, name) => {
     console.log('Deleting ' + id)
     if(window.confirm(`Delete ${name} ?`))
@@ -12,18 +12,14 @@ const Numbers = ({ numbers, persons, setPersons, setErrorMessage }) => {
         .deleteNumb(id)
           .then(response => {
             setPersons(persons.filter(p => p.id !== id))
-            setErrorMessage(`Deleted ${name} successfully`)
+            notifyWith(setNotification, `Deleted ${name} successfully`)
           })
           .catch(error => {
             setPersons(persons.filter(p => p.id !== id))
-            setErrorMessage(
-              `${name} was already removed from server`
+            notifyWith(
+              setNotification, `${name} was already removed from server`, 'error'
             )
           })
-          setTimeout(() => {
-            setErrorMessage(null)
-          }, 5000)
-          
       
       personService
         .getAll()
@@ -69,7 +65,7 @@ const Filter = ({filter, setNewFilter}) => {
   )
 }
 
-const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNewPhone, setErrorMessage}) => {
+const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNewPhone, setNotification}) => {
   const addNumber = (event) => {
     event.preventDefault()
     const newPerson = {
@@ -100,11 +96,11 @@ const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNew
       .create(newPerson)
         .then(returnedPerson => {
           setPersons(persons.concat(returnedPerson))
-          setErrorMessage(`Added ${newPerson.name} successfully`)
+          notifyWith(setNotification, `Added ${newPerson.name} successfully`)
         })
-        setTimeout(() => {
-          setErrorMessage(null)
-        }, 5000)
+        .catch(error => {
+          notifyWith(setNotification, error.response.data.error, 'error')
+        })
   }
 
   const updateName = () => {
@@ -119,11 +115,8 @@ const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNew
             setPersons(
               persons.map(person => 
                 person.id !== id ? person : response))
-            setErrorMessage(`Updated ${changedNumb.name} successfully`)
+                notifyWith(setNotification, `Updated ${changedNumb.name} successfully`)
           })
-          setTimeout(() => {
-            setErrorMessage(null)
-          }, 5000)    
     }
   }
 
@@ -145,36 +138,31 @@ const PersonForm = ({ persons, setPersons, newName, setNewName, newPhone, setNew
 }
 
 
-const Notification = ({ message }) => {
-  console.log(message)
-  if (message === null) {
+const Notification = ({ notification }) => {
+  if (notification === null) {
     return null
-  }
-  console.log(message.includes("successfully"))
-  if(message.includes("successfully"))
-  { 
-    return (
-      <div className="success">
-        {message}
-      </div>
-    )
   }
   
   return (
-    <div className="error">
-      {message}
+    <div className={notification.type}>
+      {notification.message}
     </div>
   )
-
 }
 
+const notifyWith = (setNotification, message, type='success') => {
+  setNotification({ message, type })
+  setTimeout(() => {
+    setNotification(null)
+  }, 5000)
+}
 
 const App = () => {
   const [ persons, setPersons] = useState([])
   const [ newName, setNewName ] = useState('')
   const [ newPhone, setNewPhone ] = useState('')
   const [ filter, setNewFilter] = useState('')
-  const [errorMessage, setErrorMessage] = useState(null)
+  const [notification, setNotification] = useState(null)
 
   useEffect(() => {
     personService
@@ -190,12 +178,12 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <Notification message={errorMessage} />
+      <Notification notification={notification} />
       <Filter filter={filter} setNewFilter={setNewFilter} />
       <h3>add a new</h3>
-      <PersonForm persons={persons} setPersons={setPersons} newName={newName} setNewName={setNewName} newPhone={newPhone} setNewPhone={setNewPhone} setErrorMessage={setErrorMessage} />
+      <PersonForm persons={persons} setPersons={setPersons} newName={newName} setNewName={setNewName} newPhone={newPhone} setNewPhone={setNewPhone} setNotification={setNotification} />
       <h3>Numbers</h3>
-      <Numbers numbers={numbers} persons={persons} setPersons={setPersons} setErrorMessage={setErrorMessage} />
+      <Numbers numbers={numbers} persons={persons} setPersons={setPersons} setNotification={setNotification} />
     </div>
   )
 
